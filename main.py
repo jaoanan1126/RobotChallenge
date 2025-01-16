@@ -13,17 +13,16 @@ class CarrierValidation(BaseModel):
     mc_number: str
     legal_name: Optional[str]
     dba_name: Optional[str]
-    dot_number: Optional[str]
-    operating_status: Optional[str]
     is_valid: bool
-    insurance: dict
-    authority_status: dict
     message: str
+    safety_rating: Optional[str]
+    location: Optional[dict]
+    status: Optional[dict]
 
 class ReferenceNumberRequest(BaseModel):
     reference_number: str
 
-class ReerenceNumberDetails(BaseModel):
+class ReferenceNumberDetails(BaseModel):
     reference_number: str
     origin: str
     destination: str
@@ -33,7 +32,55 @@ class ReerenceNumberDetails(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str
-    
+
+
+# Global dictionary to store loads
+loads_dict = {}
+
+def load_csv():
+    """
+    Load the CSV file into a DataFrame.
+    """
+    try:
+        loads = {}
+        with open("loads.csv", "r") as file:
+            # Skip header
+            headers = file.readline().strip().split(',')
+            
+            # Read data
+            for line in file:
+                values = line.strip().split(',')
+                ref_num = values[0]  # reference_number is first column
+                loads[ref_num] = {
+                    "reference_number": values[0],
+                    "origin": values[1],
+                    "destination": values[2],
+                    "equipment_type": values[3],
+                    "rate": values[4],
+                    "commodity": values[5]
+                }
+        return loads
+    except Exception as e:
+        print(f"Error loading CSV: {e}")
+        return {}
+
+def get_loads():
+    try:
+        return pd.read_csv('loads.csv')
+    except Exception as e:
+        print(f"Error loading CSV: {e}")
+        return pd.DataFrame()
+
+@app.on_event("startup")
+def load_data():
+    """
+    Load the CSV into memory when the app starts.
+    """
+    global loads_dict
+    loads_dict = load_csv()
+    if not loads_dict:
+        print("Warning: Load data is empty. Check 'loads.csv'")
+
 @app.post(
     "/carriers/validate",
     response_model=CarrierValidation,
@@ -86,8 +133,6 @@ async def validate_carrier(carrier: CarrierRequest):
                     mc_number=carrier.mc_number,
                     is_valid=False,
                     message="Carrier not found",
-                    insurance={},
-                    authority_status={}
                 )
                 
             if response.status_code != 200:
@@ -106,29 +151,17 @@ async def validate_carrier(carrier: CarrierRequest):
             # Create response
             return CarrierValidation(
                 mc_number=f"MC{mc_number}",
-                dot_number=carrier_data.get("dotNumber"),
                 legal_name=carrier_data.get("legalName"),
                 dba_name=carrier_data.get("dbaName"),
                 is_valid=is_valid,
                 safety_rating=carrier_data.get("safetyRating"),
-                details={
-                    "operation": {
-                        "type": carrier_data.get("carrierOperation", {}).get("carrierOperationDesc"),
-                        "code": carrier_data.get("carrierOperation", {}).get("carrierOperationCode")
-                    },
-                    "fleet_size": {
-                        "drivers": carrier_data.get("totalDrivers"),
-                        "power_units": carrier_data.get("totalPowerUnits")
-                    },
-                    "location": {
+                location = {
                         "state": carrier_data.get("phyState")
                     },
-                    "status": {
+                status= {
                         "code": carrier_data.get("statusCode"),
-                        "safety_rating": carrier_data.get("safetyRating"),
                         "safety_rating_date": carrier_data.get("safetyRatingDate")
-                    }
-                },
+                    },
                 message="Carrier is authorized to operate" if is_valid else "Carrier is not authorized to operate"
             )
             
@@ -141,8 +174,12 @@ async def validate_carrier(carrier: CarrierRequest):
         )
 
 
-@app.get("/items/{reference_number}")
-async def read_item(reference_number):
+@app.get("/items/{reference_number}", response_model=ReferenceNumberDetails,
+        responses={
+        404: {"model": ErrorResponse},
+        500: {"model": ErrorResponse}
+    })
+def read_item(reference_number: str):
     """
     Validate reference number using csv
     
@@ -156,8 +193,39 @@ async def read_item(reference_number):
     - 400: Invalid reference number or validation failed
     - 500: Server error
     """
-    return {"item_id": reference_number}
+    try:
+        # Check if dictionary is empty
+        if not loads_dict:
+            raise HTTPException(
+                status_code=500,
+                detail="No load data available"
+            )
 
+        # Try to get the load
+        load = loads_dict.get(reference_number)
+        if not load:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Load not found: {reference_number}"
+            )
+
+        return ReferenceNumberDetails(
+            reference_number=load["reference_number"],
+            origin=load["origin"],
+            destination=load["destination"],
+            equipment_type=load["equipment_type"],
+            rate=load["rate"],
+            commodity=load["commodity"]
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error retrieving load: {str(e)}"
+        )
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    
