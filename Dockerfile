@@ -1,16 +1,15 @@
 FROM python:3.9-slim
 
-WORKDIR /app
+WORKDIR /code
 
-# Copy requirements first to leverage Docker cache
-COPY requirements.txt .
-RUN pip install -r requirements.txt
 
-# Copy the rest of the application
-COPY . .
+COPY ./requirements.txt /code/requirements.txt
 
-# Expose the port the app runs on
-EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+
+
+COPY ./app /code/app
+
+
+CMD ["fastapi", "run", "app/main.py", "--port", "80"]

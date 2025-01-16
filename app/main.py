@@ -43,7 +43,7 @@ def load_csv():
     """
     try:
         loads = {}
-        with open("loads.csv", "r") as file:
+        with open("app/loads.csv", "r") as file:
             # Skip header
             headers = file.readline().strip().split(',')
             
@@ -225,7 +225,8 @@ def read_item(reference_number: str):
             status_code=500,
             detail=f"Error retrieving load: {str(e)}"
         )
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+    # import uvicorn
+    # uvicorn.run(app, host="0.0.0.0", port=8000)
+    
     
