@@ -81,7 +81,7 @@ def load_data():
     if not loads_dict:
         print("Warning: Load data is empty. Check 'loads.csv'")
 
-@app.post(
+@app.get(
     "/carriers/validate",
     response_model=CarrierValidation,
     responses={
@@ -89,7 +89,7 @@ def load_data():
         500: {"model": ErrorResponse}
     }
 )
-async def validate_carrier(carrier: CarrierRequest):
+async def validate_carrier(mc_number: str):
     """
     Validate carrier using FMCSA API
     
@@ -112,7 +112,7 @@ async def validate_carrier(carrier: CarrierRequest):
         )
 
     # Clean MC number (remove 'MC' prefix if present)
-    mc_number = carrier.mc_number.upper().replace('MC', '').strip()
+    mc_number = mc_number.upper().replace('MC', '').strip()
     
     # Validate MC number format
     if not mc_number.isdigit():
@@ -130,7 +130,7 @@ async def validate_carrier(carrier: CarrierRequest):
             
             if response.status_code == 404:
                 return CarrierValidation(
-                    mc_number=carrier.mc_number,
+                    mc_number=mc_number,
                     is_valid=False,
                     message="Carrier not found",
                 )
@@ -225,8 +225,5 @@ def read_item(reference_number: str):
             status_code=500,
             detail=f"Error retrieving load: {str(e)}"
         )
-# if __name__ == "__main__":
-    # import uvicorn
-    # uvicorn.run(app, host="0.0.0.0", port=8000)
-    
+
     
