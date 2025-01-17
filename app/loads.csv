@@ -1,0 +1,11 @@
+reference_number,origin,destination,equipment_type,rate,commodity
+9460,"Denver,CO","Detroit, MI",Dry Van,868,Automotive Parts
+4684,"Dallas,TX","Chicago, IL",Dry Van,570,Agricultural Products
+9690,"Detroit,MI","Nashville, TN",Dry Van,1495,Industrial Equipment
+2389,"Houston,TX","Phoenix, AZ",Flatbed,1250,Construction Materials
+7823,"Seattle,WA","Portland, OR",Reefer,750,Fresh Produce
+5932,"Miami,FL","Atlanta, GA",Dry Van,680,Retail Goods
+8445,"Chicago,IL","St. Louis, MO",Dry Van,425,General Freight
+3278,"Los Angeles,CA","Las Vegas, NV",Flatbed,890,Manufacturing Equipment
+6754,"Boston,MA","New York, NY",Dry Van,495,Consumer Goods
+1567,"Atlanta,GA","Charlotte, NC",Reefer,625,Frozen Foods
