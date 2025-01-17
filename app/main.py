@@ -182,7 +182,7 @@ async def validate_carrier(mc_number: str):
         )
 
 
-@app.get("/items/{reference_number}", response_model=ReferenceNumberDetails,
+@app.get("/items", response_model=ReferenceNumberDetails,
         responses={
         404: {"model": ErrorResponse},
         500: {"model": ErrorResponse}
