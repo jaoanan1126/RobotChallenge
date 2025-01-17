@@ -233,6 +233,3 @@ def read_item(reference_number: str):
             status_code=500,
             detail=f"Error retrieving load: {str(e)}"
         )
-
-
-    
