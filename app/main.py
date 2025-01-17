@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import Optional
 import httpx
 import os
+import csv
 
 app = FastAPI()
 
@@ -49,7 +50,8 @@ def load_csv():
             
             # Read data
             for line in file:
-                values = line.strip().split(',')
+                line_csv = csv.reader([line])
+                values = next(line_csv)
                 ref_num = values[0]  # reference_number is first column
                 loads[ref_num] = {
                     "reference_number": values[0],
@@ -70,6 +72,11 @@ def get_loads():
     except Exception as e:
         print(f"Error loading CSV: {e}")
         return pd.DataFrame()
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy"}
 
 @app.on_event("startup")
 def load_data():
@@ -124,7 +131,7 @@ async def validate_carrier(mc_number: str):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                f"https://mobile.fmcsa.dot.gov/qc/services/carriers/{mc_number}",
+                f"https://mobile.fmcsa.dot.gov/qc/services/carriers/docket-number/{mc_number}",
                 params={"webKey": fmcsa_api_key}
             )
             
@@ -143,7 +150,8 @@ async def validate_carrier(mc_number: str):
 
             # Parse FMCSA response
             data = response.json()
-            carrier_data = data.get("content", {}).get("carrier", {})
+            carrier_data = data.get("content", [])
+            carrier_data = carrier_data[0].get("carrier", {})
             
             # Check if carrier is valid
             is_valid = carrier_data.get("allowedToOperate", "").upper() == "Y"
