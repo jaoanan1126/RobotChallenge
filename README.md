@@ -21,15 +21,6 @@ This runs the apis on port 8000
 While running, access the API docs for more info about the APIs:
 http://0.0.0.0:8000/docs
 
-## Current live deployment: 
-
-### `Run http://HappyRobot-1213850529.us-west-1.elb.amazonaws.com to access the apis`
-
-### Sample Api calls: 
-### `Run http://happyrobot-1213850529.us-west-1.elb.amazonaws.com/items/5932`
-
-### `Run http://happyrobot-1213850529.us-west-1.elb.amazonaws.com/carriers/validate?mc_number=MC1`
-
 #### Solution Diagram
 ![screenshot](images/SolutionDiagram.png)
 
