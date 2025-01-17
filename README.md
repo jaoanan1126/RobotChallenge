@@ -27,7 +27,8 @@ http://0.0.0.0:8000/docs
   
 - The application is bundled to a docker image and uploaded to Amazon ECR. Where the latest build is tagged and deployed to ECS. Once deployed to ECS, the image is deployed to fargate workers managed by an application load balancer. 
 
-
+#### Accessing API Docs: 
+- Please ask author for the ALB DNS name, then access {albDNS}/docs
 ## Design Considerations
 
 Robot Challenge was created with three main components: the models of the api, the apis using fast api and the AWS integration. 
